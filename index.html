@@ -1,0 +1,370 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Vasuki Cloud Storage</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+<style>
+/* Reset & Global */
+* { margin:0; padding:0; box-sizing:border-box; font-family: 'Inter', sans-serif; }
+body { background: #f4f6f8; color: #333; }
+button { cursor:pointer; }
+
+/* Header */
+header {
+  background: linear-gradient(90deg,#4a90e2,#0078d4);
+  color: #fff;
+  padding: 20px;
+  text-align: center;
+  font-size: 1.8rem;
+  font-weight: 700;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+}
+
+/* Container */
+.container { max-width: 900px; margin: 30px auto; padding: 0 15px; }
+
+/* Auth Box */
+#authBox {
+  background: #fff;
+  border-radius: 12px;
+  padding: 40px;
+  text-align: center;
+  box-shadow: 0 4px 16px rgba(0,0,0,0.1);
+  max-width: 400px;
+  margin: 50px auto;
+  transition: all 0.3s ease;
+}
+#authBox input {
+  width: 80%;
+  padding: 12px 15px;
+  margin: 12px 0;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  font-size: 1rem;
+}
+#authBox button {
+  margin: 10px;
+  padding: 12px 25px;
+  border:none;
+  border-radius: 8px;
+  font-weight:600;
+  background: #0078d4;
+  color:#fff;
+  transition: background 0.3s;
+}
+#authBox button:hover { background: #005ea6; }
+#authBox .logo { width: 80px; margin-bottom: 15px; }
+#authBox .login-img { width: 100px; margin-bottom: 20px; }
+
+/* App Header */
+#app .logout {
+  background:#e53e3e;
+  color:#fff;
+  border:none;
+  padding: 10px 20px;
+  border-radius: 8px;
+  float:right;
+  margin-bottom:20px;
+}
+#app .logout:hover { background:#c53030; }
+
+/* Upload Box */
+#app .upload-box {
+  background:#fff;
+  padding:20px;
+  border-radius:12px;
+  margin-bottom:30px;
+  display:flex;
+  align-items:center;
+  gap:15px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+}
+#app .upload-box input[type="file"] { flex:1; }
+#app .upload-box button {
+  background:#0078d4;
+  color:#fff;
+  border:none;
+  padding:10px 20px;
+  border-radius:8px;
+}
+#app .upload-box button:hover { background:#005ea6; }
+
+/* Files Table */
+#filesTable {
+  width:100%;
+  border-collapse: collapse;
+  background:#fff;
+  border-radius:12px;
+  overflow:hidden;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+}
+#filesTable th, #filesTable td {
+  padding:12px 15px;
+  text-align:left;
+  border-bottom:1px solid #eee;
+}
+#filesTable th {
+  background:#f4f6f8;
+  font-weight:600;
+}
+#filesTable tr:last-child td { border-bottom:none; }
+#filesTable button {
+  padding:6px 12px;
+  border:none;
+  border-radius:6px;
+  margin-right:5px;
+  font-size:0.9rem;
+  font-weight:600;
+  color:#fff;
+}
+#filesTable button.download { background:#38a169; }
+#filesTable button.download:hover { background:#2f855a; }
+#filesTable button.delete { background:#e53e3e; }
+#filesTable button.delete:hover { background:#c53030; }
+#filesTable button.preview { background:#3182ce; }
+#filesTable button.preview:hover { background:#2b6cb0; }
+
+/* Preview Box */
+#previewBox {
+  margin-top:30px;
+  background:#fff;
+  border-radius:12px;
+  padding:20px;
+  min-height:200px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+  overflow:auto;
+}
+#previewBox img { max-width:100%; max-height:300px; border-radius:8px; }
+#previewBox pre { background:#f4f6f8; padding:15px; border-radius:8px; overflow:auto; }
+
+/* Responsive */
+@media(max-width:768px){
+  #authBox { width:90%; padding:30px; }
+  #app .upload-box { flex-direction:column; gap:10px; }
+  #filesTable th, #filesTable td { font-size:0.9rem; padding:10px; }
+}
+</style>
+</head>
+<body>
+<header>Vasuki Cloud Storage</header>
+
+<div class="container">
+<div id="authBox">
+  <img src="./assets/logo-black.png" alt="" class="logo">
+  <img src="./assets/login.png" alt="" class="login-img">
+  <input type="text" id="username" placeholder="Username">
+  <input type="password" id="password" placeholder="Password">
+  <div>
+    <button onclick="signUp()">Sign Up</button>
+    <button onclick="signIn()">Login</button>
+  </div>
+</div>
+
+<div id="app" style="display:none;">
+  <button class="logout" onclick="signOut()">Logout</button>
+
+  <div class="upload-box">
+    <input type="hidden" id="userId">
+    <input type="file" id="fileInput">
+    <button onclick="uploadFile()">Upload</button>
+  </div>
+
+  <h2>Your Files</h2>
+  <table id="filesTable">
+    <thead>
+      <tr><th>Filename</th><th>Uploaded</th><th>Actions</th></tr>
+    </thead>
+    <tbody></tbody>
+  </table>
+
+  <h2>Preview</h2>
+  <div id="previewBox">Select a file to preview</div>
+</div>
+</div>
+<!-- Keep your script as before -->
+<script type="module">
+
+
+// const supabaseUrl = "https://aitckloahlwemlekaour.supabase.co";
+// const supabaseKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImFpdGNrbG9haGx3ZW1sZWthb3VyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTYyOTQ3MTMsImV4cCI6MjA3MTg3MDcxM30.uQjQLSz0mQuuArPQ_F8u-suQ-6T0e9bF11ahQtSw6yA";
+// const supabase = Supabase.createClient(supabaseUrl, supabaseKey);
+
+
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+
+let users = [];
+let currentUser = null;
+
+// Supabase credentials
+const SUPABASE_URL = "https://aitckloahlwemlekaour.supabase.co";
+const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImFpdGNrbG9haGx3ZW1sZWthb3VyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTYyOTQ3MTMsImV4cCI6MjA3MTg3MDcxM30.uQjQLSz0mQuuArPQ_F8u-suQ-6T0e9bF11ahQtSw6yA";
+
+// Declare supabase in outer scope
+let supabase = null;
+
+// Initialize Supabase client and fetch users
+if (navigator.onLine === true) {
+    supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+    async function fetchAssertionsAndReasons() {
+        const { data, error } = await supabase.from("users").select("");
+        if (error) {
+            console.error("Error fetching data:", error);
+            return [];
+        }
+        return data.map(row => ({
+            assertion: row.assertion,
+            reason: row.reason
+        }));
+    }
+
+    users.push(...await fetchAssertionsAndReasons());
+}
+
+// -----------------
+// Global functions
+// -----------------
+window.signUp = async function() {
+    if (!supabase) return alert("Supabase not initialized or offline");
+    const username = document.getElementById("username").value;
+    const password = document.getElementById("password").value;
+    if(!username || !password) return alert("Enter username & password");
+
+    const { error } = await supabase.from("users").insert([{ username, password }]);
+    if(error) alert(error.message);
+    else alert("Signup successful, please login.");
+};
+
+window.signIn = async function() {
+    if (!supabase) return alert("Supabase not initialized or offline");
+    const username = document.getElementById("username").value;
+    const password = document.getElementById("password").value;
+
+    const { data, error } = await supabase
+        .from("users")
+        .select("*")
+        .eq("username", username)
+        .eq("password", password)
+        .single();
+
+    if(error || !data) return alert("Invalid login");
+    currentUser = data;
+    document.getElementById("userId").value = currentUser.id;
+    showApp();
+};
+
+window.signOut = function() {
+    currentUser = null;
+    document.getElementById("app").style.display = "none";
+    document.getElementById("authBox").style.display = "block";
+};
+
+function showApp() {
+    document.getElementById("authBox").style.display = "none";
+    document.getElementById("app").style.display = "block";
+    loadFiles();
+}
+
+async function uploadFile() {
+  const userId = document.getElementById("userId").value;
+  const fileInput = document.getElementById("fileInput").files[0];
+  if (!userId || !fileInput) return alert("Please login and select a file");
+
+  const reader = new FileReader();
+  reader.onload = async () => {
+    const base64 = reader.result.split(",")[1];
+    await fetch("/upload", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        userId,
+        filename: fileInput.name,
+        mimeType: fileInput.type,
+        data: base64
+      })
+    });
+    loadFiles();
+  };
+  reader.readAsDataURL(fileInput);
+}
+
+async function loadFiles() {
+  const userId = document.getElementById("userId").value;
+  if (!userId) return;
+  const res = await fetch(`/list/${userId}`);
+  const files = await res.json();
+  const tbody = document.querySelector("#filesTable tbody");
+  tbody.innerHTML = "";
+files.forEach(f => {
+  const row = document.createElement("tr");
+  row.innerHTML = `
+    <td>${f.filename}</td>
+    <td>${new Date(f.uploadedAt).toLocaleString()}</td>
+    <td>
+      <button class="download" onclick="downloadFile('${f.id}')">Download</button>
+      <button class="delete" onclick="deleteFile('${f.id}')">Delete</button>
+      <button onclick="previewFile('${f.id}')">Preview</button>
+    </td>
+  `;
+  tbody.appendChild(row);
+});
+
+}
+
+
+
+async function deleteFile(id) {
+  await fetch(`/delete/${id}`, { method: "DELETE" });
+  loadFiles();
+}
+
+
+async function previewFile(id) {
+  const res = await fetch(`/download/${id}`);
+  const contentType = res.headers.get("content-type");
+  const previewBox = document.getElementById("previewBox");
+  previewBox.innerHTML = "";
+
+  const blob = await res.blob();
+  if (contentType.startsWith("image/")) {
+    const img = document.createElement("img");
+    img.src = URL.createObjectURL(blob);
+    img.style.maxWidth = "100%";
+    img.style.maxHeight = "200px";
+    previewBox.appendChild(img);
+  } else if (contentType.startsWith("text/")) {
+    const text = await blob.text();
+    const pre = document.createElement("pre");
+    pre.textContent = text.slice(0, 500); // preview first 500 chars
+    previewBox.appendChild(pre);
+  } else {
+    previewBox.textContent = "Preview not available for this file type.";
+  }
+}
+
+
+async function downloadFile(id) {
+  const res = await fetch(`/download/${id}`);
+  const blob = await res.blob();
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = "";
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  URL.revokeObjectURL(url);
+}
+
+window.loadFiles = loadFiles;
+window.deleteFile = deleteFile;
+window.uploadFile = uploadFile;
+window.previewFile = previewFile;
+window.downloadFile = downloadFile;
+</script>
+</body>
+</html>

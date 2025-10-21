@@ -1,0 +1,40 @@
+*, body {
+padding: 0; margin: 0; font-family: Arial, sans-serif;;
+}
+
+h1 { color: #333; }
+
+input, button { margin: 5px; padding: 8px; }
+
+table { width: 100%; border-collapse: collapse; margin-top: 20px; background: white; }
+
+th, td { padding: 10px; border-bottom: 1px solid #ddd; text-align: left; }
+
+th { background: #eee; }
+
+button { cursor: pointer; border: none; border-radius: 5px; }
+
+.download { background: #4caf50; color: white; }
+
+.delete { background: #e53935; color: white; }
+
+.logout { background: #444; color: white; float: right; }
+
+#authBox {
+  background-color: #d9d9d9;
+  height: 100vh;
+  width: 100vw;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+
+.logo {
+  width: 15vw;
+}
+
+.login-img {
+  width: 80vw;
+  margin-left: 10vw;
+}
