@@ -6,7 +6,6 @@ import { fileURLToPath } from "url";
 
 
 const app = express();
-const PORT = 3000;
 
 // Ensure db folder exists
 const DB_FILE = path.join(process.cwd(), "files.json");
@@ -91,4 +90,7 @@ app.get("/share/:id", (req, res) => {
 });
 
 
-app.listen(PORT, () => console.log(`Server running at http://localhost:${PORT}`));
+const PORT = process.env.PORT || 3000;
+app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
+
+
